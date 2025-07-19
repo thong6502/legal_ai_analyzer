@@ -1,0 +1,842 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Legal AI Analyzer{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== DASHBOARD STYLES ===== */
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%);
+        color: white;
+        padding: var(--space-2xl) 0;
+        margin-bottom: var(--space-2xl);
+    }
+
+    .dashboard-header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--space-lg);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-lg);
+    }
+
+    .dashboard-title {
+        font-size: 2rem;
+        font-weight: 600;
+        color: white;
+        margin: 0;
+    }
+
+    .dashboard-subtitle {
+        color: var(--primary-200);
+        margin-top: var(--space-sm);
+    }
+
+    .dashboard-actions {
+        display: flex;
+        gap: var(--space-md);
+    }
+
+    .btn-white {
+        background: white;
+        color: var(--primary-800);
+        border: none;
+    }
+
+    .btn-white:hover {
+        background: var(--primary-100);
+        color: var(--primary-900);
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-section {
+        margin-bottom: var(--space-2xl);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: var(--space-lg);
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--space-lg);
+    }
+
+    .stat-card {
+        background: white;
+        padding: var(--space-xl);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        border-left: 4px solid var(--accent-600);
+        transition: all var(--transition-normal);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: var(--space-md);
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: var(--accent-100);
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        color: var(--accent-600);
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-900);
+        line-height: 1;
+    }
+
+    .stat-label {
+        color: var(--primary-600);
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: var(--space-xs);
+    }
+
+    .stat-change {
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: var(--radius-sm);
+    }
+
+    .stat-change.positive {
+        background: var(--success-100);
+        color: var(--success-600);
+    }
+
+    .stat-change.negative {
+        background: var(--error-100);
+        color: var(--error-600);
+    }
+
+    /* ===== REPORTS SECTION ===== */
+    .reports-section {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 var(--space-lg);
+    }
+
+    /* Reset để tránh vệt đen không mong muốn */
+    .report-card *::before,
+    .report-card *::after {
+        box-sizing: border-box;
+    }
+
+    /* Đảm bảo không có background/border không mong muốn */
+    .report-summary {
+        background: transparent !important;
+        border: none !important;
+        border-top: none !important;
+    }
+
+    /* SAFE HOVER EFFECTS - Không sử dụng pseudo-elements */
+    .report-summary-safe:hover {
+        border-top: 2px solid var(--primary-900);
+        padding-top: calc(var(--space-lg) - 2px);
+        margin-top: var(--space-sm);
+        transition: all var(--transition-fast);
+        background: transparent !important;
+    }
+
+    /* Alternative: Sử dụng box-shadow thay vì border để tránh layout shift */
+    .report-summary-alt:hover {
+        box-shadow: inset 0 2px 0 0 var(--primary-900);
+        transition: box-shadow var(--transition-fast);
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: var(--space-xl);
+        flex-wrap: wrap;
+        gap: var(--space-md);
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+        color: var(--primary-900);
+        margin: 0;
+    }
+
+    .section-actions {
+        display: flex;
+        gap: var(--space-md);
+        align-items: center;
+    }
+
+
+
+    /* ===== REPORTS GRID ===== */
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: var(--space-xl);
+        margin-bottom: var(--space-2xl);
+        align-items: stretch;
+        /* Đảm bảo tất cả cards có chiều cao bằng nhau */
+    }
+
+    .report-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+        transition: all var(--transition-normal);
+        border: 1px solid var(--primary-200);
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        /* Đảm bảo card chiếm toàn bộ chiều cao có sẵn */
+        min-height: 320px;
+        /* Chiều cao tối thiểu để đồng nhất */
+    }
+
+    .report-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-xl);
+    }
+
+    .report-header {
+        padding: var(--space-lg);
+        border-bottom: 1px solid var(--primary-200);
+    }
+
+    .report-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--primary-900);
+        margin-bottom: var(--space-sm);
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        position: relative;
+        cursor: help;
+    }
+
+    /* Tooltip cho report title */
+    .report-title[data-full-text]:hover::after {
+        content: attr(data-full-text);
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: var(--primary-900);
+        color: white;
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 500;
+        line-height: 1.4;
+        z-index: 1000;
+        box-shadow: var(--shadow-lg);
+        white-space: normal;
+        opacity: 0;
+        animation: tooltipFadeIn 0.2s ease-out forwards;
+        margin-top: var(--space-xs);
+    }
+
+    .report-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.875rem;
+        color: var(--primary-600);
+    }
+
+    .report-date {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    .report-body {
+        padding: var(--space-lg);
+        flex: 1;
+        /* Cho phép body mở rộng để chiếm không gian còn lại */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .risk-score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: var(--space-lg);
+    }
+
+    .risk-label {
+        font-weight: 500;
+        color: var(--primary-700);
+    }
+
+    .risk-value {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        font-weight: 600;
+        font-size: 1.125rem;
+    }
+
+    .risk-badge {
+        padding: var(--space-xs) var(--space-sm);
+        border-radius: var(--radius-sm);
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .risk-low {
+        background: var(--success-100);
+        color: var(--success-600);
+    }
+
+    .risk-medium {
+        background: var(--warning-100);
+        color: var(--warning-600);
+    }
+
+    .risk-high {
+        background: var(--error-100);
+        color: var(--error-600);
+    }
+
+    .report-summary {
+        color: var(--primary-600);
+        font-size: 0.875rem;
+        line-height: 1.5;
+        margin-bottom: var(--space-lg);
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+        /* Cho phép summary chiếm không gian còn lại */
+        position: relative;
+        cursor: help;
+        transition: all var(--transition-fast);
+    }
+
+    /* SAFE HOVER EFFECT: Sử dụng box-shadow thay vì pseudo-elements */
+    .report-summary:hover {
+        box-shadow: inset 0 2px 0 0 var(--primary-900) !important;
+        transition: box-shadow var(--transition-fast) !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* DISABLE tất cả pseudo-elements để tránh vệt đen */
+    .report-summary::before,
+    .report-summary::after {
+        display: none !important;
+        content: none !important;
+        background: transparent !important;
+    }
+
+    @keyframes lineSlideIn {
+        from {
+            width: 0;
+            left: 50%;
+        }
+
+        to {
+            width: 100%;
+            left: 0;
+        }
+    }
+
+    /* TOOLTIP DISABLED để tránh conflict với hover effects
+    .report-summary[data-full-text]:not([data-full-text=""]):hover::after {
+        content: attr(data-full-text);
+        position: absolute;
+        bottom: calc(100% + var(--space-sm));
+        left: 0;
+        right: 0;
+        background: var(--primary-900);
+        color: white;
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        font-size: 0.8rem;
+        line-height: 1.4;
+        z-index: 1000;
+        box-shadow: var(--shadow-lg);
+        white-space: normal;
+        max-height: 200px;
+        overflow-y: auto;
+        opacity: 0;
+        animation: tooltipFadeIn 0.2s ease-out forwards;
+        pointer-events: none;
+    }
+    */
+
+    @keyframes tooltipFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(5px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .report-footer {
+        padding: var(--space-lg);
+        border-top: 1px solid var(--primary-200);
+        background: var(--primary-50);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* Hover effects cho button "Xem" */
+    .btn-primary {
+        transition: all var(--transition-fast);
+        position: relative;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(2px);
+        box-shadow: 0 2px 4px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:active {
+        transform: translateY(3px);
+        box-shadow: 0 1px 2px rgba(37, 99, 235, 0.4);
+    }
+
+    /* Subtle animation for button press */
+    .btn-primary:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+    }
+
+    .report-actions {
+        display: flex;
+        gap: var(--space-sm);
+    }
+
+    .btn-sm {
+        padding: var(--space-xs) var(--space-md);
+        font-size: 0.75rem;
+    }
+
+    .btn-icon {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    /* ===== EMPTY STATE ===== */
+    .empty-state {
+        text-align: center;
+        padding: var(--space-3xl);
+        color: var(--primary-600);
+    }
+
+    .empty-icon {
+        font-size: 4rem;
+        color: var(--primary-400);
+        margin-bottom: var(--space-lg);
+    }
+
+    .empty-title {
+        font-size: 1.5rem;
+        color: var(--primary-700);
+        margin-bottom: var(--space-md);
+    }
+
+    .empty-description {
+        margin-bottom: var(--space-xl);
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .dashboard-header-content {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .dashboard-actions {
+            justify-content: center;
+        }
+
+        .section-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+
+
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .report-card {
+            min-height: 280px;
+            /* Giảm chiều cao tối thiểu trên mobile */
+        }
+
+        .report-footer {
+            flex-direction: column;
+            gap: var(--space-md);
+            align-items: stretch;
+        }
+
+        .report-actions {
+            justify-content: center;
+        }
+
+        /* Cải thiện tooltip trên mobile */
+        .report-title[data-full-text]:hover::after,
+        .report-summary[data-full-text]:hover::after {
+            position: fixed;
+            top: 50%;
+            left: var(--space-md);
+            right: var(--space-md);
+            transform: translateY(-50%);
+            max-height: 60vh;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .dashboard-title {
+            font-size: 1.5rem;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .report-card {
+            min-height: 260px;
+            /* Chiều cao nhỏ hơn cho màn hình rất nhỏ */
+        }
+
+        .reports-grid {
+            gap: var(--space-lg);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<section class="dashboard-header">
+    <div class="dashboard-header-content">
+        <div>
+            <h1 class="dashboard-title">Dashboard</h1>
+            <p class="dashboard-subtitle">Quản lý và theo dõi các báo cáo phân tích hợp đồng</p>
+        </div>
+        <div class="dashboard-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-white btn-icon">
+                <i class="fas fa-plus"></i>
+                <span>Phân tích mới</span>
+            </a>
+            <button class="btn btn-outline btn-icon">
+                <i class="fas fa-download"></i>
+                <span>Xuất báo cáo</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section">
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-change positive">+12%</div>
+            </div>
+            <div class="stat-value">{{ stats.total_reports }}</div>
+            <div class="stat-label">Tổng số báo cáo</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-change negative">-5%</div>
+            </div>
+            <div class="stat-value">{{ stats.high_risk }}</div>
+            <div class="stat-label">Rủi ro cao</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-change positive">+8%</div>
+            </div>
+            <div class="stat-value">{{ stats.avg_processing_time }}</div>
+            <div class="stat-label">Thời gian xử lý (phút)</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-header">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-change positive">+15%</div>
+            </div>
+            <div class="stat-value">{{ stats.accuracy }}%</div>
+            <div class="stat-label">Độ chính xác</div>
+        </div>
+    </div>
+</section>
+
+<!-- Reports Section -->
+<section class="reports-section">
+    <div class="section-header">
+        <h2 class="section-title">Báo cáo gần đây</h2>
+        <div class="section-actions">
+            <a href="{{ url_for('all_reports') }}" class="btn btn-outline btn-icon">
+                <i class="fas fa-list"></i>
+                <span>Xem tất cả báo cáo</span>
+            </a>
+        </div>
+    </div>
+
+    <div class="reports-grid" id="reports-grid">
+        {% for report in reports %}
+        <div class="report-card" data-report-id="{{ report.id }}" data-status="{{ report.status }}">
+            <div class="report-header">
+                <h3 class="report-title" data-full-text="{{ report.title }}">{{ report.title }}</h3>
+                <div class="report-meta">
+                    <div class="report-date">
+                        <i class="fas fa-calendar"></i>
+                        <span>{{ report.date }}</span>
+                    </div>
+                    <span class="report-size">{{ report.size }}</span>
+                </div>
+            </div>
+
+            <div class="report-body">
+                <div class="risk-score">
+                    <span class="risk-label">Mức độ rủi ro:</span>
+                    <div class="risk-value">
+                        <span>{{ report.risk_score }}%</span>
+                        <span class="risk-badge risk-{{ report.risk_level }}">
+                            {% if report.risk_level == 'high' %}Cao
+                            {% elif report.risk_level == 'medium' %}Trung bình
+                            {% else %}Thấp
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+
+                <p class="report-summary" data-full-text="{{ report.summary }}">{{ report.summary }}</p>
+            </div>
+
+            <div class="report-footer">
+                <div class="report-actions">
+                    <a href="{{ url_for('report', report_id=report.id) }}" class="btn btn-primary btn-sm btn-icon">
+                        <i class="fas fa-eye"></i>
+                        <span>Xem</span>
+                    </a>
+                    <button class="btn btn-secondary btn-sm btn-icon">
+                        <i class="fas fa-download"></i>
+                        <span>Tải</span>
+                    </button>
+                </div>
+                <button class="btn btn-outline btn-sm btn-icon"
+                    onclick="window.location.href='{{ url_for('report', report_id=report.id) }}#chat'">
+                    <i class="fas fa-comments"></i>
+                    <span>Chat</span>
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State (hidden by default) -->
+    <div class="empty-state hidden" id="empty-state">
+        <i class="fas fa-file-alt empty-icon"></i>
+        <h3 class="empty-title">Chưa có báo cáo nào</h3>
+        <p class="empty-description">
+            Bạn chưa có báo cáo phân tích nào. Hãy tải lên tài liệu đầu tiên để bắt đầu.
+        </p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus"></i>
+            Tạo báo cáo đầu tiên
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+    // ===== TOOLTIP ENHANCEMENT FOR UNIFORM CARD HEIGHTS =====
+    document.addEventListener('DOMContentLoaded', function () {
+        initializeTooltips();
+        ensureUniformCardHeights();
+    });
+
+    function initializeTooltips() {
+        // Cải thiện tooltip cho các phần tử có text bị cắt ngắn
+        const elementsWithTooltip = document.querySelectorAll('.report-title, .report-summary');
+
+        elementsWithTooltip.forEach(element => {
+            // Kiểm tra xem text có bị cắt ngắn không
+            if (isTextTruncated(element)) {
+                element.style.cursor = 'help';
+
+                // Thêm event listeners cho tooltip
+                let tooltipTimeout;
+
+                element.addEventListener('mouseenter', function () {
+                    tooltipTimeout = setTimeout(() => {
+                        showTooltip(element);
+                    }, 500); // Delay 500ms trước khi hiển thị tooltip
+                });
+
+                element.addEventListener('mouseleave', function () {
+                    clearTimeout(tooltipTimeout);
+                    hideTooltip(element);
+                });
+            }
+        });
+    }
+
+    function isTextTruncated(element) {
+        // Kiểm tra xem element có bị cắt ngắn không
+        return element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth;
+    }
+
+    function showTooltip(element) {
+        // Tạo tooltip element nếu chưa có
+        let tooltip = element.querySelector('.custom-tooltip');
+        if (!tooltip) {
+            tooltip = document.createElement('div');
+            tooltip.className = 'custom-tooltip';
+            tooltip.textContent = element.textContent;
+            element.appendChild(tooltip);
+        }
+
+        tooltip.style.display = 'block';
+
+        // Positioning logic để đảm bảo tooltip không bị cắt
+        const rect = element.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        if (rect.top < tooltipRect.height + 10) {
+            tooltip.style.top = '100%';
+            tooltip.style.bottom = 'auto';
+        } else {
+            tooltip.style.bottom = '100%';
+            tooltip.style.top = 'auto';
+        }
+    }
+
+    function hideTooltip(element) {
+        const tooltip = element.querySelector('.custom-tooltip');
+        if (tooltip) {
+            tooltip.style.display = 'none';
+        }
+    }
+
+    function ensureUniformCardHeights() {
+        // Đảm bảo tất cả cards có chiều cao đồng nhất trong mỗi hàng
+        const reportCards = document.querySelectorAll('.report-card');
+
+        // Reset heights
+        reportCards.forEach(card => {
+            card.style.height = 'auto';
+        });
+
+        // Tính toán và áp dụng chiều cao đồng nhất
+        if (window.innerWidth > 768) {
+            const cardsPerRow = Math.floor(document.querySelector('.reports-grid').offsetWidth / 350);
+
+            for (let i = 0; i < reportCards.length; i += cardsPerRow) {
+                const rowCards = Array.from(reportCards).slice(i, i + cardsPerRow);
+                const maxHeight = Math.max(...rowCards.map(card => card.offsetHeight));
+
+                rowCards.forEach(card => {
+                    card.style.height = maxHeight + 'px';
+                });
+            }
+        }
+    }
+
+    // Chạy lại khi resize window
+    window.addEventListener('resize', debounce(ensureUniformCardHeights, 250));
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+</script>
+
+<style>
+    /* Custom tooltip styles */
+    .custom-tooltip {
+        position: absolute;
+        background: var(--primary-900);
+        color: white;
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-md);
+        font-size: 0.8rem;
+        line-height: 1.4;
+        z-index: 1000;
+        box-shadow: var(--shadow-lg);
+        white-space: normal;
+        max-width: 300px;
+        left: 0;
+        right: 0;
+        display: none;
+        animation: tooltipFadeIn 0.2s ease-out;
+    }
+
+    @media (max-width: 768px) {
+        .custom-tooltip {
+            position: fixed;
+            top: 50% !important;
+            left: var(--space-md) !important;
+            right: var(--space-md) !important;
+            bottom: auto !important;
+            transform: translateY(-50%);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+    }
+</style>
+{% endblock %}

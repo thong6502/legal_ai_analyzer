@@ -1,0 +1,944 @@
+{% extends "base.html" %}
+
+{% block title %}Báo cáo phân tích - Legal AI Analyzer{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== REPORT LAYOUT ===== */
+    .report-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: var(--space-lg);
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: var(--space-2xl);
+        min-height: calc(100vh - 160px);
+    }
+
+    .report-main {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        overflow: hidden;
+    }
+
+    .chat-sidebar {
+        background: white;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+        display: flex;
+        flex-direction: column;
+        height: fit-content;
+        min-height: 75vh;
+        max-height: calc(100vh - 100px);
+        position: sticky;
+        top: 90px;
+        overflow: hidden;
+    }
+
+    /* ===== REPORT HEADER ===== */
+    .report-header {
+        background: linear-gradient(135deg, var(--primary-800) 0%, var(--primary-700) 100%);
+        color: white;
+        padding: var(--space-2xl);
+    }
+
+    .report-title {
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin-bottom: var(--space-md);
+        color: white;
+    }
+
+    .report-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: var(--space-md);
+        font-size: 0.875rem;
+        color: var(--primary-200);
+    }
+
+    .report-date {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+    }
+
+    .report-actions {
+        display: flex;
+        gap: var(--space-sm);
+    }
+
+    .btn-white-outline {
+        background: transparent;
+        color: white;
+        border: 2px solid white;
+    }
+
+    .btn-white-outline:hover {
+        background: white;
+        color: var(--primary-800);
+    }
+
+    /* ===== RISK OVERVIEW ===== */
+    .risk-overview {
+        padding: var(--space-2xl);
+        border-bottom: 1px solid var(--primary-200);
+    }
+
+    .risk-score-display {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: var(--space-xl);
+    }
+
+    .risk-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-right: var(--space-xl);
+    }
+
+    .risk-circle.high {
+        background: linear-gradient(135deg, var(--error-600) 0%, var(--error-500) 100%);
+    }
+
+    .risk-circle.medium {
+        background: linear-gradient(135deg, var(--warning-600) 0%, var(--warning-500) 100%);
+    }
+
+    .risk-circle.low {
+        background: linear-gradient(135deg, var(--success-600) 0%, var(--success-500) 100%);
+    }
+
+    .risk-percentage {
+        font-size: 2rem;
+        font-weight: 700;
+        color: white;
+    }
+
+    .risk-info {
+        flex: 1;
+    }
+
+    .risk-level {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: var(--space-sm);
+    }
+
+    .risk-level.high {
+        color: var(--error-600);
+    }
+
+    .risk-level.medium {
+        color: var(--warning-600);
+    }
+
+    .risk-level.low {
+        color: var(--success-600);
+    }
+
+    .risk-description {
+        color: var(--primary-600);
+        line-height: 1.6;
+        margin-bottom: var(--space-md);
+    }
+
+    .risk-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--space-lg);
+        margin-top: var(--space-xl);
+    }
+
+    .risk-stat {
+        text-align: center;
+        padding: var(--space-lg);
+        background: var(--primary-50);
+        border-radius: var(--radius-md);
+    }
+
+    .risk-stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary-900);
+        margin-bottom: var(--space-xs);
+    }
+
+    .risk-stat-label {
+        font-size: 0.875rem;
+        color: var(--primary-600);
+    }
+
+    /* ===== REPORT SECTIONS ===== */
+    .report-content {
+        padding: var(--space-2xl);
+    }
+
+    .report-section {
+        margin-bottom: var(--space-2xl);
+    }
+
+    .section-title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary-900);
+        margin-bottom: var(--space-lg);
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    .section-icon {
+        color: var(--accent-600);
+    }
+
+    .findings-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .finding-item {
+        background: var(--primary-50);
+        border-left: 4px solid var(--error-600);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-md);
+        border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    }
+
+    .finding-item.medium {
+        border-left-color: var(--warning-600);
+    }
+
+    .finding-item.low {
+        border-left-color: var(--success-600);
+    }
+
+    .finding-title {
+        font-weight: 600;
+        color: var(--primary-900);
+        margin-bottom: var(--space-sm);
+    }
+
+    .finding-description {
+        color: var(--primary-700);
+        line-height: 1.6;
+        margin-bottom: var(--space-sm);
+    }
+
+    .finding-recommendation {
+        background: white;
+        padding: var(--space-md);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--primary-200);
+        font-size: 0.875rem;
+        color: var(--primary-600);
+    }
+
+    /* ===== CHAT INTERFACE ===== */
+    .chat-header {
+        padding: var(--space-md) var(--space-lg);
+        border-bottom: 1px solid var(--primary-200);
+        background: var(--primary-50);
+        flex-shrink: 0;
+    }
+
+    .chat-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: var(--primary-900);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+    }
+
+    .chat-subtitle {
+        font-size: 0.875rem;
+        color: var(--primary-600);
+        margin-top: var(--space-xs);
+    }
+
+    /* ===== SUGGESTION PILLS ===== */
+    .suggestion-pills-container {
+        border-bottom: 1px solid var(--primary-200);
+        flex-shrink: 0;
+        padding: var(--space-md) var(--space-lg);
+        background: var(--primary-50);
+    }
+
+    .suggestion-pills {
+        display: flex;
+        gap: var(--space-sm);
+        overflow-x: auto;
+        padding: var(--space-xs) 0;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .suggestion-pills::-webkit-scrollbar {
+        display: none;
+    }
+
+    .suggestion-pill {
+        display: flex;
+        align-items: center;
+        gap: var(--space-xs);
+        padding: var(--space-sm) var(--space-md);
+        background: white;
+        border: 2px solid var(--primary-300);
+        border-radius: 20px;
+        color: var(--primary-700);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        white-space: nowrap;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .suggestion-pill:hover {
+        background: var(--accent-100);
+        border-color: var(--accent-600);
+        color: var(--accent-600);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+
+    .suggestion-pill:focus {
+        outline: none;
+        background: var(--accent-100);
+        border-color: var(--accent-600);
+        color: var(--accent-600);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .suggestion-pill:active {
+        transform: translateY(0);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .suggestion-pill i {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .suggestion-pill:hover i {
+        opacity: 1;
+    }
+
+    /* ===== PILL TOOLTIPS ===== */
+    .pill-tooltip {
+        position: fixed;
+        background: var(--primary-900);
+        color: white;
+        padding: var(--space-sm) var(--space-md);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        font-weight: 500;
+        max-width: 300px;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(4px);
+        transition: all var(--transition-fast);
+        pointer-events: none;
+        box-shadow: var(--shadow-lg);
+        line-height: 1.4;
+    }
+
+    .pill-tooltip.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .pill-tooltip.tooltip-below {
+        transform: translateY(-4px);
+    }
+
+    .pill-tooltip.tooltip-below.visible {
+        transform: translateY(0);
+    }
+
+    /* Tooltip arrow */
+    .pill-tooltip::before {
+        content: '';
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: var(--primary-900);
+    }
+
+    .pill-tooltip.tooltip-below::before {
+        top: -12px;
+        border-top-color: transparent;
+        border-bottom-color: var(--primary-900);
+    }
+
+    .chat-messages {
+        flex: 1 1 auto;
+        padding: var(--space-md) var(--space-lg);
+        overflow-y: auto;
+        min-height: 0;
+        scroll-behavior: smooth;
+    }
+
+    .message {
+        margin-bottom: var(--space-lg);
+    }
+
+    .message-user {
+        text-align: right;
+    }
+
+    .message-bubble {
+        display: inline-block;
+        max-width: 80%;
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        line-height: 1.5;
+    }
+
+    .message-user .message-bubble {
+        background: var(--accent-600);
+        color: white;
+        border-bottom-right-radius: var(--radius-xs);
+    }
+
+    .message-ai .message-bubble {
+        background: var(--primary-100);
+        color: var(--primary-800);
+        border-bottom-left-radius: var(--radius-xs);
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        color: var(--primary-500);
+        margin-top: var(--space-xs);
+    }
+
+    .chat-input-area {
+        padding: var(--space-md) var(--space-lg);
+        border-top: 1px solid var(--primary-200);
+        background: var(--primary-50);
+        flex-shrink: 0;
+        margin-top: auto;
+    }
+
+    .chat-input-form {
+        display: flex;
+        gap: var(--space-sm);
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: var(--space-sm) var(--space-md);
+        border: 2px solid var(--primary-300);
+        border-radius: var(--radius-md);
+        font-size: 0.875rem;
+        resize: none;
+        min-height: 40px;
+        max-height: 120px;
+    }
+
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--accent-600);
+    }
+
+    .chat-send-btn {
+        padding: var(--space-sm) var(--space-md);
+        background: var(--accent-600);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: background-color var(--transition-fast);
+    }
+
+    .chat-send-btn:hover {
+        background: var(--accent-500);
+    }
+
+    .chat-send-btn:disabled {
+        background: var(--primary-400);
+        cursor: not-allowed;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+        .report-container {
+            grid-template-columns: 1fr;
+            gap: var(--space-lg);
+        }
+
+        .chat-sidebar {
+            position: static;
+            max-height: none;
+            min-height: 60vh;
+        }
+
+        .chat-messages {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        .risk-score-display {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .risk-circle {
+            margin-right: 0;
+            margin-bottom: var(--space-lg);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .report-container {
+            padding: var(--space-md);
+        }
+
+        .report-header {
+            padding: var(--space-lg);
+        }
+
+        .report-title {
+            font-size: 1.5rem;
+        }
+
+        .report-meta {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .risk-stats {
+            grid-template-columns: 1fr;
+        }
+
+        .report-content {
+            padding: var(--space-lg);
+        }
+
+        .chat-sidebar {
+            min-height: 50vh;
+        }
+
+        .chat-messages {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+
+        /* Responsive pills for tablet */
+        .suggestion-pills-container {
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        .suggestion-pill {
+            font-size: 0.8rem;
+            padding: var(--space-xs) var(--space-sm);
+        }
+
+        .suggestion-pill i {
+            font-size: 0.7rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .risk-circle {
+            width: 100px;
+            height: 100px;
+        }
+
+        .risk-percentage {
+            font-size: 1.5rem;
+        }
+
+        .chat-sidebar {
+            min-height: 45vh;
+        }
+
+        .chat-messages {
+            flex: 1 1 auto;
+            min-height: 0;
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        .chat-input-area {
+            padding: var(--space-sm) var(--space-md);
+        }
+
+        /* Responsive pills for mobile */
+        .suggestion-pills-container {
+            padding: var(--space-xs) var(--space-sm);
+        }
+
+        .suggestion-pill {
+            font-size: 0.75rem;
+            padding: var(--space-xs);
+            gap: 2px;
+        }
+
+        .suggestion-pill span {
+            display: none;
+        }
+
+        .suggestion-pill i {
+            font-size: 0.875rem;
+        }
+
+        .message-bubble {
+            max-width: 90%;
+            font-size: 0.875rem;
+        }
+    }
+
+    /* ===== CHAT ENHANCEMENTS ===== */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: var(--primary-100);
+        border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: var(--primary-400);
+        border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: var(--primary-500);
+    }
+
+    /* Custom scrollbar for pills container */
+    .suggestion-pills::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .suggestion-pills::-webkit-scrollbar-track {
+        background: var(--primary-100);
+        border-radius: 2px;
+    }
+
+    .suggestion-pills::-webkit-scrollbar-thumb {
+        background: var(--primary-300);
+        border-radius: 2px;
+    }
+
+    /* Chat animation improvements */
+    .message {
+        animation: fadeInUp 0.3s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Focus states for better accessibility */
+    .chat-input:focus {
+        outline: none;
+        border-color: var(--accent-600);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .suggestion-item:focus {
+        outline: none;
+        background: var(--accent-100);
+        border-color: var(--accent-600);
+        color: var(--accent-600);
+        box-shadow: 0 0 0 2px var(--accent-600);
+    }
+
+    /* Smooth transitions for pills */
+    .suggestion-pill {
+        transition: all 0.2s ease-out;
+    }
+
+    /* ===== LAYOUT FIXES FOR CHAT INPUT STABILITY ===== */
+    .chat-sidebar {
+        contain: layout style;
+    }
+
+    .suggestion-pills-container {
+        flex-shrink: 0;
+    }
+
+    .chat-header {
+        flex-shrink: 0;
+        z-index: 1;
+    }
+
+    .chat-input-area {
+        z-index: 1;
+        border-top: 1px solid var(--primary-200);
+        background: var(--primary-50);
+        position: relative;
+    }
+
+    /* Ensure proper flexbox behavior */
+    .chat-messages {
+        overflow-anchor: none;
+        contain: layout style;
+    }
+
+    /* Optimize pills performance */
+    .suggestion-pills {
+        contain: layout style;
+    }
+
+    /* Ensure chat input is always visible and attached */
+    .chat-input-area {
+        min-height: 60px;
+        box-sizing: border-box;
+    }
+
+    .chat-input-form {
+        display: flex;
+        gap: var(--space-sm);
+        align-items: flex-end;
+    }
+
+    .chat-input {
+        flex: 1;
+        min-height: 40px;
+        max-height: 120px;
+        resize: none;
+        border: 2px solid var(--primary-300);
+        border-radius: var(--radius-md);
+        padding: var(--space-sm) var(--space-md);
+        font-family: var(--font-primary);
+        font-size: 0.875rem;
+        line-height: 1.4;
+        transition: border-color var(--transition-fast);
+    }
+
+    .chat-send-btn {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: var(--radius-md);
+        background: var(--accent-600);
+        color: white;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background-color var(--transition-fast);
+    }
+
+    .chat-send-btn:hover:not(:disabled) {
+        background: var(--accent-500);
+    }
+
+    .chat-send-btn:disabled {
+        background: var(--primary-400);
+        cursor: not-allowed;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="report-container">
+    <!-- Main Report Content -->
+    <div class="report-main">
+        <!-- Report Header -->
+        <div class="report-header">
+            <h1 class="report-title">{{ report.title }}</h1>
+            <div class="report-meta">
+                <div class="report-date">
+                    <i class="fas fa-calendar"></i>
+                    <span>Phân tích ngày {{ report.date }}</span>
+                </div>
+                <div class="report-actions">
+                    <button class="btn btn-white-outline btn-sm">
+                        <i class="fas fa-download"></i>
+                        Tải xuống
+                    </button>
+                    <button class="btn btn-white-outline btn-sm">
+                        <i class="fas fa-share"></i>
+                        Chia sẻ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Risk Overview -->
+        <div class="risk-overview">
+            <div class="risk-score-display">
+                <div class="risk-circle {{ report.risk_level }}">
+                    <span class="risk-percentage">{{ report.risk_score }}%</span>
+                </div>
+                <div class="risk-info">
+                    <h2 class="risk-level {{ report.risk_level }}">
+                        {% if report.risk_level == 'high' %}Rủi ro cao
+                        {% elif report.risk_level == 'medium' %}Rủi ro trung bình
+                        {% else %}Rủi ro thấp
+                        {% endif %}
+                    </h2>
+                    <p class="risk-description">{{ report.risk_description }}</p>
+                </div>
+            </div>
+
+            <div class="risk-stats">
+                <div class="risk-stat">
+                    <div class="risk-stat-value">{{ report.stats.high_risk }}</div>
+                    <div class="risk-stat-label">Rủi ro cao</div>
+                </div>
+                <div class="risk-stat">
+                    <div class="risk-stat-value">{{ report.stats.medium_risk }}</div>
+                    <div class="risk-stat-label">Rủi ro trung bình</div>
+                </div>
+                <div class="risk-stat">
+                    <div class="risk-stat-value">{{ report.stats.low_risk }}</div>
+                    <div class="risk-stat-label">Rủi ro thấp</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Report Content -->
+        <div class="report-content">
+            <!-- Key Findings -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-exclamation-triangle section-icon"></i>
+                    Phát hiện chính
+                </h3>
+
+                <ul class="findings-list">
+                    {% for finding in report.findings %}
+                    <li class="finding-item {{ finding.severity }}">
+                        <div class="finding-title">{{ finding.title }}</div>
+                        <div class="finding-description">{{ finding.description }}</div>
+                        <div class="finding-recommendation">
+                            <strong>Khuyến nghị:</strong> {{ finding.recommendation }}
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <!-- Recommendations -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-lightbulb section-icon"></i>
+                    Khuyến nghị tổng thể
+                </h3>
+
+                <div class="finding-item low">
+                    <div class="finding-description">
+                        <strong>1. Đàm phán lại các điều khoản:</strong> Tập trung vào việc giảm mức phí phạt
+                        và bổ sung điều khoản bảo vệ quyền lợi người thuê.<br><br>
+
+                        <strong>2. Tham khảo ý kiến luật sư:</strong> Do mức độ rủi ro cao, khuyến nghị
+                        tham khảo ý kiến chuyên gia pháp lý trước khi ký kết.<br><br>
+
+                        <strong>3. Lưu giữ bằng chứng:</strong> Chụp ảnh, ghi lại tình trạng nhà ở
+                        khi nhận bàn giao để tránh tranh chấp sau này.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Sidebar -->
+    <div class="chat-sidebar">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <h3 class="chat-title">
+                <i class="fas fa-robot"></i>
+                Chat với AI
+            </h3>
+            <p class="chat-subtitle">Hỏi về các điều khoản cụ thể trong hợp đồng</p>
+        </div>
+
+        <!-- Quick Access Pills -->
+        <div class="suggestion-pills-container">
+            <div class="suggestion-pills" id="suggestion-pills">
+                <button class="suggestion-pill"
+                    data-question="Phân tích các rủi ro pháp lý chính và mức độ nghiêm trọng của từng điều khoản trong hợp đồng này?"
+                    onclick="sendSuggestedQuestion(this)"
+                    title="Phân tích các rủi ro pháp lý chính và mức độ nghiêm trọng của từng điều khoản trong hợp đồng này?">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Rủi ro pháp lý</span>
+                </button>
+                <button class="suggestion-pill"
+                    data-question="Đánh giá tính tuân thủ của hợp đồng với các quy định pháp luật hiện hành và các tiêu chuẩn ngành?"
+                    onclick="sendSuggestedQuestion(this)"
+                    title="Đánh giá tính tuân thủ của hợp đồng với các quy định pháp luật hiện hành và các tiêu chuẩn ngành?">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Tuân thủ pháp luật</span>
+                </button>
+                <button class="suggestion-pill"
+                    data-question="Xác định các điều khoản bất cân xứng hoặc bất lợi có thể gây thiệt hại cho khách hàng và đề xuất điều chỉnh?"
+                    onclick="sendSuggestedQuestion(this)"
+                    title="Xác định các điều khoản bất cân xứng hoặc bất lợi có thể gây thiệt hại cho khách hàng và đề xuất điều chỉnh?">
+                    <i class="fas fa-scales-unbalanced"></i>
+                    <span>Điều khoản bất lợi</span>
+                </button>
+                <button class="suggestion-pill"
+                    data-question="Phân tích các điều khoản chấm dứt hợp đồng, thời hạn thông báo và hậu quả pháp lý khi vi phạm?"
+                    onclick="sendSuggestedQuestion(this)"
+                    title="Phân tích các điều khoản chấm dứt hợp đồng, thời hạn thông báo và hậu quả pháp lý khi vi phạm?">
+                    <i class="fas fa-file-contract"></i>
+                    <span>Chấm dứt & Vi phạm</span>
+                </button>
+                <button class="suggestion-pill"
+                    data-question="Đề xuất các điều khoản bổ sung hoặc sửa đổi để tăng cường bảo vệ quyền lợi và giảm thiểu rủi ro pháp lý?"
+                    onclick="sendSuggestedQuestion(this)"
+                    title="Đề xuất các điều khoản bổ sung hoặc sửa đổi để tăng cường bảo vệ quyền lợi và giảm thiểu rủi ro pháp lý?">
+                    <i class="fas fa-edit"></i>
+                    <span>Đề xuất cải thiện</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <div class="message message-ai">
+                <div class="message-bubble">
+                    Xin chào! Tôi đã phân tích xong hợp đồng của bạn. Bạn có thể hỏi tôi về bất kỳ điều khoản nào trong
+                    hợp đồng này.
+                </div>
+                <div class="message-time">14:30</div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-area">
+            <form class="chat-input-form" id="chat-form">
+                <textarea class="chat-input" id="chat-input" placeholder="Nhập câu hỏi của bạn..." rows="1"></textarea>
+                <button type="submit" class="chat-send-btn" id="chat-send-btn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,188 @@
+/* ===== HOVER EFFECTS FIX - LEGAL AI ANALYZER ===== */
+
+/* 
+ * File này chứa các CSS fixes để khắc phục vệt đen không mong muốn
+ * Sử dụng file này để override các hover effects có vấn đề
+ */
+
+/* ===== RESET TẤT CẢ HOVER EFFECTS CÓ VẤN đề ===== */
+.report-summary::before,
+.report-summary::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* ===== SAFE HOVER EFFECTS ===== */
+
+/* Option 1: Sử dụng border-top (có thể gây layout shift nhẹ) */
+.report-summary-border:hover {
+    border-top: 2px solid var(--primary-900) !important;
+    padding-top: calc(var(--space-lg) - 2px) !important;
+    margin-top: var(--space-sm) !important;
+    transition: all 0.2s ease !important;
+    background: transparent !important;
+}
+
+/* Option 2: Sử dụng box-shadow (không gây layout shift) */
+.report-summary-shadow:hover {
+    box-shadow: inset 0 2px 0 0 var(--primary-900) !important;
+    transition: box-shadow 0.2s ease !important;
+    background: transparent !important;
+}
+
+/* Option 3: Sử dụng outline (không ảnh hưởng layout) */
+.report-summary-outline:hover {
+    outline: 2px solid var(--primary-900) !important;
+    outline-offset: -2px !important;
+    transition: outline 0.2s ease !important;
+    background: transparent !important;
+}
+
+/* Option 4: Sử dụng background gradient */
+.report-summary-gradient:hover {
+    background: linear-gradient(to right, var(--primary-900) 0%, var(--primary-900) 100%) !important;
+    background-size: 100% 2px !important;
+    background-repeat: no-repeat !important;
+    background-position: top !important;
+    transition: background 0.2s ease !important;
+}
+
+/* Option 5: Sử dụng text decoration */
+.report-summary-underline:hover {
+    text-decoration: overline !important;
+    text-decoration-color: var(--primary-900) !important;
+    text-decoration-thickness: 2px !important;
+    transition: text-decoration 0.2s ease !important;
+    background: transparent !important;
+}
+
+/* ===== BUTTON HOVER FIXES ===== */
+
+/* Safe button hover effects */
+.btn-primary-safe {
+    transition: all 0.2s ease !important;
+    position: relative !important;
+}
+
+.btn-primary-safe:hover {
+    transform: translateY(1px) !important;
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.3) !important;
+}
+
+.btn-primary-safe:active {
+    transform: translateY(2px) !important;
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.4) !important;
+}
+
+/* ===== DEBUGGING STYLES ===== */
+
+/* Highlight elements để debug */
+.debug-hover {
+    outline: 1px dashed red !important;
+}
+
+.debug-hover::before {
+    content: "BEFORE" !important;
+    position: absolute !important;
+    top: -20px !important;
+    left: 0 !important;
+    background: red !important;
+    color: white !important;
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+    z-index: 9999 !important;
+}
+
+.debug-hover::after {
+    content: "AFTER" !important;
+    position: absolute !important;
+    top: -20px !important;
+    right: 0 !important;
+    background: blue !important;
+    color: white !important;
+    font-size: 10px !important;
+    padding: 2px 4px !important;
+    z-index: 9999 !important;
+}
+
+/* ===== COMPLETE DISABLE (Emergency fix) ===== */
+.no-hover * {
+    pointer-events: none !important;
+}
+
+.no-hover *:hover {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.no-hover *::before,
+.no-hover *::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* ===== SPECIFIC FIXES FOR REPORT CARDS ===== */
+
+/* Fix cho report cards */
+.report-card-fixed .report-summary {
+    position: relative !important;
+    background: transparent !important;
+    border: none !important;
+}
+
+.report-card-fixed .report-summary:hover {
+    /* Chỉ sử dụng box-shadow để tạo line effect */
+    box-shadow: inset 0 2px 0 0 var(--primary-900) !important;
+    transition: box-shadow 0.2s ease !important;
+    background: transparent !important;
+}
+
+/* Disable tất cả pseudo-elements trong report cards */
+.report-card-fixed .report-summary::before,
+.report-card-fixed .report-summary::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* ===== MOBILE FIXES ===== */
+@media (max-width: 768px) {
+    /* Disable hover effects trên mobile để tránh sticky hover */
+    .report-summary:hover,
+    .btn-primary:hover {
+        transform: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        background: transparent !important;
+    }
+    
+    .report-summary::before,
+    .report-summary::after {
+        display: none !important;
+    }
+}
+
+/* ===== UTILITY CLASSES ===== */
+
+/* Class để tạm thời disable hover */
+.disable-hover {
+    pointer-events: none !important;
+}
+
+.disable-hover * {
+    pointer-events: none !important;
+}
+
+/* Class để force transparent background */
+.force-transparent {
+    background: transparent !important;
+    border: none !important;
+}
+
+.force-transparent::before,
+.force-transparent::after {
+    display: none !important;
+    content: none !important;
+}

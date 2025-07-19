@@ -1,0 +1,10 @@
+flask
+flask-cors
+langchain
+chromadb
+google-generativeai
+sentence-transformers
+pytesseract
+PyPDF2
+python-docx
+pillow

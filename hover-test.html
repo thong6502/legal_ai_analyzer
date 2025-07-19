@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hover Effects Test - Legal AI Analyzer</title>
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/hover-fix.css">
+    <style>
+        body {
+            padding: 2rem;
+            background: var(--primary-50);
+        }
+        
+        .test-section {
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .test-title {
+            font-size: 1.5rem;
+            color: var(--primary-900);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--primary-200);
+            padding-bottom: 0.5rem;
+        }
+        
+        .test-item {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid var(--primary-200);
+            border-radius: var(--radius-md);
+        }
+        
+        .test-label {
+            font-weight: 600;
+            color: var(--primary-700);
+            margin-bottom: 0.5rem;
+        }
+        
+        .sample-summary {
+            color: var(--primary-600);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            padding: 1rem;
+            background: var(--primary-50);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+        }
+        
+        .control-panel {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+        }
+        
+        .control-btn {
+            display: block;
+            width: 100%;
+            margin-bottom: 0.5rem;
+            padding: 0.5rem;
+            background: var(--primary-600);
+            color: white;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        
+        .control-btn:hover {
+            background: var(--primary-700);
+        }
+        
+        .status {
+            margin-top: 1rem;
+            padding: 0.5rem;
+            background: var(--success-100);
+            color: var(--success-600);
+            border-radius: var(--radius-sm);
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="control-panel">
+        <h4>Test Controls</h4>
+        <button class="control-btn" onclick="toggleDebug()">Toggle Debug Mode</button>
+        <button class="control-btn" onclick="disableAllHover()">Disable All Hover</button>
+        <button class="control-btn" onclick="enableSafeHover()">Enable Safe Hover</button>
+        <button class="control-btn" onclick="resetAll()">Reset All</button>
+        <div class="status" id="status">Ready for testing</div>
+    </div>
+
+    <h1>Hover Effects Test Page</h1>
+    <p>Trang này để test các hover effects và tìm nguyên nhân gây ra vệt đen.</p>
+
+    <!-- Test 1: Original hover effect -->
+    <div class="test-section">
+        <h2 class="test-title">Test 1: Original Hover Effect (Có thể có vệt đen)</h2>
+        <div class="test-item">
+            <div class="test-label">Original hover với ::before pseudo-element:</div>
+            <div class="sample-summary original-hover" data-full-text="Đây là nội dung đầy đủ của summary để test tooltip functionality">
+                Phát hiện 3 điều khoản bất lợi chính: phí phạt cao, quyền đơn phương chấm dứt hợp đồng...
+            </div>
+        </div>
+    </div>
+
+    <!-- Test 2: Border hover effect -->
+    <div class="test-section">
+        <h2 class="test-title">Test 2: Border Hover Effect (Safe)</h2>
+        <div class="test-item">
+            <div class="test-label">Sử dụng border-top thay vì pseudo-element:</div>
+            <div class="sample-summary report-summary-border">
+                Hợp đồng tương đối cân bằng với 1 điều khoản cần lưu ý về thời gian thử việc...
+            </div>
+        </div>
+    </div>
+
+    <!-- Test 3: Box-shadow hover effect -->
+    <div class="test-section">
+        <h2 class="test-title">Test 3: Box-Shadow Hover Effect (Safest)</h2>
+        <div class="test-item">
+            <div class="test-label">Sử dụng box-shadow inset:</div>
+            <div class="sample-summary report-summary-shadow">
+                Hợp đồng được soạn thảo tốt với các điều khoản rõ ràng và cân bằng quyền lợi...
+            </div>
+        </div>
+    </div>
+
+    <!-- Test 4: Outline hover effect -->
+    <div class="test-section">
+        <h2 class="test-title">Test 4: Outline Hover Effect</h2>
+        <div class="test-item">
+            <div class="test-label">Sử dụng outline:</div>
+            <div class="sample-summary report-summary-outline">
+                Hợp đồng chứa nhiều rủi ro nghiêm trọng: không có cam kết cụ thể về tiến độ...
+            </div>
+        </div>
+    </div>
+
+    <!-- Test 5: No hover effect -->
+    <div class="test-section">
+        <h2 class="test-title">Test 5: No Hover Effect (Control)</h2>
+        <div class="test-item">
+            <div class="test-label">Không có hover effect:</div>
+            <div class="sample-summary">
+                Hợp đồng có một số điểm cần cải thiện về phạm vi dịch vụ và trách nhiệm...
+            </div>
+        </div>
+    </div>
+
+    <!-- Test 6: Button hover effects -->
+    <div class="test-section">
+        <h2 class="test-title">Test 6: Button Hover Effects</h2>
+        <div class="test-item">
+            <div class="test-label">Original button hover:</div>
+            <button class="btn btn-primary">Xem báo cáo</button>
+        </div>
+        <div class="test-item">
+            <div class="test-label">Safe button hover:</div>
+            <button class="btn btn-primary btn-primary-safe">Xem báo cáo (Safe)</button>
+        </div>
+    </div>
+
+    <style>
+        /* Original hover effect for testing */
+        .original-hover:hover::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-900);
+            border-radius: 1px;
+            z-index: 1;
+        }
+        
+        .original-hover {
+            position: relative;
+        }
+    </style>
+
+    <script>
+        let debugMode = false;
+        let hoverDisabled = false;
+
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const elements = document.querySelectorAll('.sample-summary');
+            
+            elements.forEach(el => {
+                if (debugMode) {
+                    el.classList.add('debug-hover');
+                } else {
+                    el.classList.remove('debug-hover');
+                }
+            });
+            
+            updateStatus(debugMode ? 'Debug mode ON' : 'Debug mode OFF');
+        }
+
+        function disableAllHover() {
+            hoverDisabled = true;
+            document.body.classList.add('no-hover');
+            updateStatus('All hover effects disabled');
+        }
+
+        function enableSafeHover() {
+            hoverDisabled = false;
+            document.body.classList.remove('no-hover');
+            
+            // Apply safe hover classes
+            const summaries = document.querySelectorAll('.sample-summary');
+            summaries.forEach(el => {
+                el.classList.add('report-summary-shadow');
+            });
+            
+            updateStatus('Safe hover effects enabled');
+        }
+
+        function resetAll() {
+            debugMode = false;
+            hoverDisabled = false;
+            
+            document.body.classList.remove('no-hover');
+            
+            const elements = document.querySelectorAll('.sample-summary');
+            elements.forEach(el => {
+                el.classList.remove('debug-hover', 'report-summary-shadow', 'report-summary-border', 'report-summary-outline');
+            });
+            
+            updateStatus('All effects reset');
+        }
+
+        // Log hover events for debugging
+        document.addEventListener('mouseover', function(e) {
+            if (e.target.classList.contains('sample-summary')) {
+                console.log('Hover on:', e.target.className, e.target.textContent.substring(0, 50) + '...');
+            }
+        });
+
+        // Check for black artifacts
+        function checkForBlackArtifacts() {
+            const elements = document.querySelectorAll('.sample-summary');
+            elements.forEach((el, index) => {
+                const computedStyle = window.getComputedStyle(el);
+                const beforeStyle = window.getComputedStyle(el, '::before');
+                const afterStyle = window.getComputedStyle(el, '::after');
+                
+                console.log(`Element ${index}:`, {
+                    background: computedStyle.background,
+                    border: computedStyle.border,
+                    beforeContent: beforeStyle.content,
+                    beforeBackground: beforeStyle.background,
+                    afterContent: afterStyle.content,
+                    afterBackground: afterStyle.background
+                });
+            });
+        }
+
+        // Run check on page load
+        window.addEventListener('load', function() {
+            updateStatus('Page loaded - hover over elements to test');
+            setTimeout(checkForBlackArtifacts, 1000);
+        });
+    </script>
+</body>
+</html>
